@@ -58,13 +58,18 @@ public class FDChecker {
 	private static AttributeSet closure(AttributeSet attrs, Set<FunctionalDependency> fds) {
 		AttributeSet closure = new AttributeSet();
 		closure.addAll(attrs);
-		for (FunctionalDependency fd: fds) {
+		int flag = 0;
+		while(flag == 0){
+			flag =1;
+		        for (FunctionalDependency fd: fds) {
 			System.out.println(attrs);
 			System.out.println(fd.left);
 			System.out.println(attrs.containsAll(fd.left));
 			if (attrs.containsAll(fd.left)) {
 				closure.add(fd.right);
+				flag = 0;
 			}
+		}
 		}
 		System.out.println(closure);
 		return closure;
