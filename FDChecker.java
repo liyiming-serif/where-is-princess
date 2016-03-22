@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.function.Function;
 
 public class FDChecker {
 
@@ -44,34 +45,28 @@ public class FDChecker {
 		//original table.
 		//a decomposition is lossless if the common attributes for a superkey for one of the
 		//tables.
-
-		//naive implementation
-//		if (t1.containsAll(t2) || t2.containsAll(t1)) return true;
-		
 		AttributeSet inter = (AttributeSet) t1.clone();
 		inter.retainAll(t2);
 		
-		for (Attribute a: t1) {
-			FunctionalDependency fd = new FunctionalDependency(inter, a);
-			AttributeSet aself = new AttributeSet();
-			aself.add(a);
-			if (!inter.equals(aself) &&!fds.contains(fd)) {
-				for (Attribute b: t2) {
-					FunctionalDependency fd2 = new FunctionalDependency(inter, b);
-					//check if b->b happens
-					AttributeSet bself = new AttributeSet();
-					bself.add(b);
-					System.out.println(""+ fd.left+fd.right + fd2.left + fd2.right);
-					if (!inter.equals(bself) && !fds.contains(fd2)) return false;
-				}
-			}
-		}
-		return true;
+		AttributeSet interClosure = closure(inter, fds);
+		if (interClosure.containsAll(t1) || interClosure.containsAll(t2)) return true;
+		return false;
 	}
 
 	//recommended helper method
 	//finds the total set of attributes implied by attrs
 	private static AttributeSet closure(AttributeSet attrs, Set<FunctionalDependency> fds) {
-		return null;
+		AttributeSet closure = new AttributeSet();
+		closure.addAll(attrs);
+		for (FunctionalDependency fd: fds) {
+			System.out.println(attrs);
+			System.out.println(fd.left);
+			System.out.println(attrs.containsAll(fd.left));
+			if (attrs.containsAll(fd.left)) {
+				closure.add(fd.right);
+			}
+		}
+		System.out.println(closure);
+		return closure;
 	}
 }
