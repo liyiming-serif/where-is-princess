@@ -1,0 +1,80 @@
+1.
+MATCH 
+(c:Character)-[:Can]->(a:Ability)-[:HasElement]->(e:Element {name:'Fire'})
+RETURN DISTINCT c.name, a.name
+ORDER BY c.name, a.name;
+
+
+2. 
+MATCH 
+(c:Character)-[:Can]->(a:Ability)-[:HasElement]->(e:Element)
+WHERE NOT(e.name='Physical')
+WITH COLLECT(c) AS nonphy
+MATCH
+(c1:Character)
+WHERE NOT(c1 IN nonphy)
+RETURN DISTINCT c1.name
+ORDER BY c1.name;
+
+
+3.
+MATCH
+(c:Character)-[:Can]->(a:Ability)-[:HasElement]->(e:Element)
+WITH c, e
+ORDER BY e.name
+return DISTINCT e.name, count(DISTINCT c) AS count_c
+ORDER BY count_c DESC LIMIT 1;
+
+
+4. option1:
+MATCH 
+(c1:Character)
+OPTIONAL MATCH
+(c1)-[:Can]->(a1:Ability)-[:HasElement]->(e1:Element)
+WITH c1, COLLECT(e1) AS collect_e1
+
+MATCH
+(c2:Character)
+WHERE c1.name < c2.name 
+WITH c1, collect_e1, c2
+OPTIONAL MATCH
+(c2)-[:Can]->(a2:Ability)-[:HasElement]->(e2:Element)
+WITH c1, c2, collect_e1, COLLECT(distinct e2) AS collect_e2
+
+MATCH 
+(e:Element)
+WHERE (e IN collect_e1) OR (e IN collect_e2)
+RETURN DISTINCT c1.name, c2.name, count(e) AS number
+ORDER BY number DESC, c1.name, c2.name
+LIMIT 10;  
+
+
+option2:
+MATCH 
+(c1:Character)
+OPTIONAL MATCH
+(c1)-[:Can]->(a1:Ability)-[:HasElement]->(e1:Element)
+WITH c1, count(distinct e1) AS count_e1, COLLECT(DISTINCT e1) AS collect_e1
+MATCH
+(c2:Character)
+WHERE c1.name < c2.name 
+WITH c1, count_e1, collect_e1, c2
+OPTIONAL MATCH
+(c2)-[:Can]->(a2:Ability)-[:HasElement]->(e2:Element)
+WHERE NOT(e2 IN collect_e1)
+WITH c1, c2, count_e1, count(distinct e2) AS count_e2
+RETURN DISTINCT c1.name, c2.name, count_e1 + count_e2 AS number
+ORDER BY number DESC, c1.name, c2.name
+LIMIT 10; 
+
+
+
+5.
+MATCH 
+(e2:Element)
+OPTIONAL MATCH
+(a1:Ability)-[:HasElement]->(e1:Element)-[:EffectiveAgainst]->(e2)
+WITH e2, a1
+ORDER BY a1.name
+RETURN e2.name, COLLECT(DISTINCT a1.name)
+ORDER BY e2.name;
